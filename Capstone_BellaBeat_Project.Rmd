@@ -1,0 +1,132 @@
+---
+title: "Capstone Project: BellaBeat"
+author: "Andrew Iwaszkiewicz"
+date: "2023-05-08"
+output: html_document
+---
+
+## Overview
+
+The **BellaBeat** co-founders and marketing analytics team tasked me with identifying user trends in their product line. I focused on the **Leaf** and **Watch**, which offer similar data and services.
+
+This report explores trends like user activity during the day and the relationship between activity types, distance, and calories burned. Insights gathered from the analysis can help optimize BellaBeat’s marketing efforts.
+
+------------------------------------------------------------------------
+
+## Steps Per Hour of Day
+
+To identify when users are most active, I queried the total steps per hour of the day and plotted them below:
+
+```{r}
+library(tidyverse)
+
+ActivityHour_TotalSteps <- read.csv("ActivityHour_TotalSteps.csv")
+
+ggplot(ActivityHour_TotalSteps, aes(x = ActivityHour, y = TotalSteps)) +
+  geom_line(color = "blue") +
+  labs(x = "Activity Hour", y = "Total Steps", title = "Steps Per Hour of Day") +
+  theme(plot.title = element_text(hjust = 0.5)) +
+  scale_x_continuous(breaks = unique(ActivityHour_TotalSteps$ActivityHour)) +
+  scale_y_continuous(labels = scales::comma, breaks = seq(0, 550000, 25000)) +
+  theme(panel.grid.major = element_line())
+```
+
+### Insight
+
+The graph shows that the most active hour of the day is **6 PM** (18:00). BellaBeat can leverage this insight by scheduling ads during this peak activity period to capture maximum user attention.
+
+------------------------------------------------------------------------
+
+## Correlation: Distance and Calories Burned
+
+I then examined the relationship between total distance traveled and calories burned to determine if there’s a correlation.
+
+```{r}
+Total_ActivityMin_Calories_Per_Id <- read_csv("Total_ActivityMin_Calories_Per_Id.csv")
+
+ggplot(Total_ActivityMin_Calories_Per_Id, aes(x = TotalDistance, y = CaloriesBurned)) +
+  geom_point(color = "blue") +
+  geom_smooth() +
+  labs(x = "Total Distance", y = "Calories Burned", title = "Distance vs Calories") +
+  theme(plot.title = element_text(hjust = 0.5)) +
+  scale_y_continuous(breaks = seq(0, 550000, 25000)) +
+  geom_text(aes(x = Inf, y = Inf, label = paste("r =", round(cor(Total_ActivityMin_Calories_Per_Id$TotalDistance, Total_ActivityMin_Calories_Per_Id$CaloriesBurned), 2))))
+```
+
+### Insight
+
+There is a positive correlation (**r = 0.64**) between total distance and calories burned. This indicates that activities covering more distance tend to burn more calories, which can be communicated to users through marketing campaigns.
+
+------------------------------------------------------------------------
+
+## Correlation: Activity Type and Calories Burned
+
+Next, I explored the correlations between different activity types (e.g., Very Active, Fairly Active, Lightly Active) and calories burned.
+
+### Very Active Minutes
+
+```{r}
+ggplot(Total_ActivityMin_Calories_Per_Id, aes(x = VeryActiveMinutes, y = CaloriesBurned)) +
+  geom_point(color = "blue") +
+  geom_smooth() +
+  labs(x = "Very Active Minutes", y = "Calories Burned", title = "Very Active Min vs Calories") +
+  theme(plot.title = element_text(hjust = 0.5)) +
+  geom_text(aes(x = Inf, y = Inf, label = paste("r =", round(cor(Total_ActivityMin_Calories_Per_Id$VeryActiveMinutes, Total_ActivityMin_Calories_Per_Id$CaloriesBurned), 2))))
+```
+
+### Fairly Active, Lightly Active, and Sedentary Minutes
+
+```{r}
+# Fairly Active Minutes
+ggplot(Total_ActivityMin_Calories_Per_Id, aes(x = FairlyActiveMinutes, y = CaloriesBurned)) +
+  geom_point(color = "blue") +
+  geom_smooth() +
+  labs(x = "Fairly Active Minutes", y = "Calories Burned", title = "Fairly Active Min vs Calories") +
+  theme(plot.title = element_text(hjust = 0.5))
+
+# Lightly Active Minutes
+ggplot(Total_ActivityMin_Calories_Per_Id, aes(x = LightlyActiveMinutes, y = CaloriesBurned)) +
+  geom_point(color = "blue") +
+  geom_smooth() +
+  labs(x = "Lightly Active Minutes", y = "Calories Burned", title = "Lightly Active Min vs Calories") +
+  theme(plot.title = element_text(hjust = 0.5))
+
+# Sedentary Minutes
+ggplot(Total_ActivityMin_Calories_Per_Id, aes(x = SedentaryMinutes, y = CaloriesBurned)) +
+  geom_point(color = "blue") +
+  geom_smooth() +
+  labs(x = "Sedentary Minutes", y = "Calories Burned", title = "Sedentary Min vs Calories") +
+  theme(plot.title = element_text(hjust = 0.5))
+```
+
+### Insight
+
+The strongest correlation exists between **Very Active Minutes** and calories burned, while the correlation between Sedentary Minutes and calories burned is unexpectedly stronger than Lightly Active or Fairly Active Minutes. BellaBeat can encourage users to engage in more intense physical activities to achieve higher calorie burns.
+
+------------------------------------------------------------------------
+
+## Tableau Visualization
+
+The Tableau visualization below illustrates the breakdown of activity minutes per user, categorized by activity type.
+
+
+
+```{r}
+# Embed Tableau visualization
+iframe_dataviz <- "<div class='tableauPlaceholder' id='viz1683211500294' style='position: relative'><noscript><a href='#'><img alt='Activity Min by Type per Id ' src='https:&#47;&#47;public.tableau.com&#47;static&#47;images&#47;Ac&#47;ActivityMinbyTypeperId&#47;Sheet1&#47;1_rss.png' style='border: none' /></a></noscript><object class='tableauViz'  style='display:none;'><param name='host_url' value='https%3A%2F%2Fpublic.tableau.com%2F' /> <param name='embed_code_version' value='3' /> <param name='site_root' value='' /><param name='name' value='ActivityMinbyTypeperId&#47;Sheet1' /><param name='tabs' value='no' /><param name='toolbar' value='yes' /><param name='static_image' value='https:&#47;&#47;public.tableau.com&#47;static&#47;images&#47;Ac&#47;ActivityMinbyTypeperId&#47;Sheet1&#47;1.png' /> <param name='animate_transition' value='yes' /><param name='display_static_image' value='yes' /><param name='display_spinner' value='yes' /><param name='display_overlay' value='yes' /><param name='display_count' value='yes' /><param name='language' value='en-US' /></object></div> <script type='text/javascript'> var divElement = document.getElementById('viz1683211500294'); var vizElement = divElement.getElementsByTagName('object')[0]; vizElement.style.width='100%';vizElement.style.height=(divElement.offsetWidth*0.75)+'px'; var scriptElement = document.createElement('script'); scriptElement.src = 'https://public.tableau.com/javascripts/api/viz_v1.js'; vizElement.parentNode.insertBefore(scriptElement, vizElement); </script>"
+```
+```{r, results='asis'}
+cat(iframe_dataviz)
+```
+
+### Insight
+
+The majority of users’ time is spent in **Sedentary Minutes**, followed by **Lightly Active Minutes**, which likely include low-intensity activities such as walking. BellaBeat can target users who engage in such activities to market their wearable devices.
+
+------------------------------------------------------------------------
+
+### Final Recommendations
+
+1.  Schedule ads for the most active hour of the day (**6 PM**) to maximize engagement.
+2.  Highlight the importance of tracking distance and activity intensity to users, as these are strongly correlated with calorie burn.
+3.  Target users who engage in light physical activity, such as walking, to promote BellaBeat devices for better tracking and fitness insights.
